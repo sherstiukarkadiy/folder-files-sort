@@ -2,7 +2,7 @@ import os
 import sys
 
 try:
-    DIR_PATH = "/Users/macair/Desktop/GoIT - course copy"
+    DIR_PATH = sys.argv[1]
 except IndexError:
     print("No path entered")
     sys.exit()

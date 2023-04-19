@@ -2,10 +2,14 @@ import os
 import sys
 
 try:
-    DIR_PATH = sys.argv[1]
+    DIR_PATH = " ".join(sys.argv[1:])
 except IndexError:
     print("No path entered")
     sys.exit()
+else:
+    if not os.path.isdir(DIR_PATH):
+        print("Invalid path entered")
+        sys.exit()
 
 def create_dirs(dir_path: str) -> tuple:
     """Create new folders in user directory to move files by category:  Images,Video,Documents,Music,Archives

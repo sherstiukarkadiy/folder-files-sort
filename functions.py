@@ -2,18 +2,48 @@ import os
 import shutil 
 import re
 
+def create_dirs(dir_path: str) -> tuple:
+    """Create new folders in user directory to move files by category:  Images,Video,Documents,Music,Archives
+
+    Args:
+        dir_path (str): directory path
+
+    Returns:
+        tuple: tuple of folders pathes
+    """
+    
+    dirs = ["Images","Video","Documents","Music","Archives"]
+    pathes =[]
+    for dir_name in dirs:
+        pathes.append(os.path.join(dir_path,dir_name))
+        try:
+            os.mkdir(f"{dir_path}/{dir_name}")
+        except OSError:
+            continue
+    return tuple(pathes)
+
 def normalize(file_path: str) -> None:
+    """_summary_
+
+    Args:
+        file_path (str): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    
     file_name = os.path.basename(file_path)
     file_name,file_suffix = os.path.splitext(file_name)
-    cyrillic_symbols = "абвгдеёжзийклмнопрстуфхцчшщъыьэюяєіїґ"
+    cyrillic_symbols = ("а", "б", "в", "г", "д", "е", "ё", "ж", "з", "и", "й", "к", "л", "м", "н", "о", "п", "р", "с", "т", "у",
+                "ф", "х", "ц", "ч", "ш", "щ", "ъ", "ы", "ь", "э", "ю", "я", "є", "і", "ї", "ґ")
     latin_symbols = ("a", "b", "v", "g", "d", "e", "e", "j", "z", "i", "j", "k", "l", "m", "n", "o", "p", "r", "s", "t", "u",
                 "f", "h", "ts", "ch", "sh", "sch", "", "y", "", "e", "yu", "ya", "je", "i", "ji", "g")
-    translation = {}
+    translit_map = {}
     for c, t in zip(cyrillic_symbols, latin_symbols):
-        translation[ord(c)] = t
-        translation[ord(c.upper())] = t.upper()
+        translit_map[ord(c)] = t
+        translit_map[ord(c.upper())] = t.upper()
     
-    new_name = file_name.translate(translation)
+    new_name = file_name.translate(translit_map)
     new_name = re.sub(r'[^\w]','_',new_name)
     return new_name + file_suffix
 
@@ -25,7 +55,7 @@ def replace_files(old_path: str, new_path: str) -> None:
     """
     new_path = f"{new_path}/{normalize(old_path)}"
     if 'Archive' in new_path:
-        os.path.splitext(new_path)
+        new_path = os.path.splitext(new_path)[0]
         shutil.unpack_archive(old_path,new_path)
     else:
         shutil.move(old_path, new_path)
@@ -65,3 +95,28 @@ def scroll_files(dir_path: str,folders_dict: dict, *,knows_list: list = [],unkno
             unknows_list.append(file_suffix)
             
     return folders_dict, set(knows_list), set(unknows_list)
+
+def delete_empty_folders(dir_path: str, counter = 0, hidd_except = True) -> int:
+    """Recursively delete empty folders in such directory
+
+    Args:
+        dir_path (str): path to directory,
+        counter (int, optional): start calculation number of deleted folders. Defaults to 0.,
+        hidd_except (bool, optional): If True fuction ignores all hidden folders, if False - delete them too. Defaults to True.
+
+    Returns:
+        int: number of deleted folders
+    """
+    
+    for element in os.scandir(dir_path):
+        if hidd_except and element.name.startswith("."): continue
+        if element.is_dir():
+            try:
+                os.rmdir(element.path)
+            except OSError:
+                counter += delete_empty_folders(element.path,counter)
+            else:
+                counter += 1
+    return counter
+        
+                

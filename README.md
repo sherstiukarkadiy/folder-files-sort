@@ -1,9 +1,9 @@
 # folder-files-sort
 Sorts all files in folder by file groups
 
-to use write comand to console:
+to use write comand to console: 
 
-python main.py <path_to_dir>
+cleanfold <path_to_dir>
 
 file "main.py" - Callable program
 
